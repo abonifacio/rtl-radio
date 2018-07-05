@@ -4,14 +4,16 @@ from threading import  Thread
 import asyncio
 import sys
 # from rtlsdr import RtlSdr
-# import soundcard as sc
+import soundcard as sc
 from fmtools import Demodulador
 import sounddevice as sd
 import numpy as np
 import pyaudio
+import pyudp
 import time
 import pytcp
 from scipy import signal
+from myTimer import MyTimer
 #import matplotlib.pyplot as plt
 
 TCP_IP = '127.0.0.1'
@@ -21,7 +23,8 @@ BUFFER_SIZE = 128*2**20
 
 Fs = 2.048e6
 # Fs = 3.2e6
-Fo = 101.723e6
+# Fo = 101.723e6
+Fo = 92.1e6
 
 
 if len(sys.argv)>1:
@@ -38,6 +41,7 @@ fm = Demodulador(Fs,Fo)
 
 output_Fs = fm.outputFs() 
 print(output_Fs)
+timer = MyTimer(False)
  # 0.0005371146202599635
  # 0.0005371146202599635
 
@@ -46,15 +50,15 @@ def callback(in_data, frame_count, time_info, status):
     return (data, pyaudio.paContinue)
 
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16,channels=1,rate=output_Fs,output=True)
-# default_speaker = sc.default_speaker()
+# stream = p.open(format=pyaudio.paInt16,channels=1,rate=output_Fs,output=True)
+default_speaker = sc.default_speaker()
 
 # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # s.connect((TCP_IP, TCP_PORT))
 
 
 def producer(queue):
-    pytcp.init(samples_queue)
+    pytcp.init(queue,timer)
     # while True:
     #     elapsed_time = time.time()
     #     # samples = sdr.read_samples(1024e4)
@@ -67,11 +71,10 @@ def producer(queue):
         # break
 
 def consumer(in_queue,out_queue):
-    elapsed_time = time.time()
+    # elapsed_time = time.time()
     while True:
         samples = in_queue.get()
-        # print("Samples: {0}".format(time.time() - elapsed_time))
-        # elapsed_time = time.time()
+        timer.tag('consumer ini')
         audio = np.int16(fm.demodular(samples)* 32767)
         # audio = fm.demodular(samples)
 
@@ -79,28 +82,38 @@ def consumer(in_queue,out_queue):
         # print("Demodulacion: {0}".format(time.time() - elapsed_time))
         # print("Demod: {0}".format(time.time() - elapsed_time))
         # time.sleep(1)
-        print("Muestras: {0} ===== Segundos de audio: {1} cada: {2} ({3})".format(len(audio),len(audio)/output_Fs,time.time()-elapsed_time,output_Fs))
-        elapsed_time = time.time()
+        # print("Muestras: {0} ===== Segundos de audio: {1} cada: {2} ({3})".format(len(audio),len(audio)/output_Fs,time.time()-elapsed_time,output_Fs))
+        # elapsed_time = time.time()
         out_queue.put(audio)
+        timer.tag('consumer fin')
         # break
 
-def player(queue):
+def player2(queue):
     count = 0
     buffer = []
     while True:
         audio = queue.get()
-        stream.write(audio)
-        # default_speaker.play(audio, samplerate=output_Fs)
+        timer.tag('audio ini')
+        # stream.write(audio)
+        # pyudp.send(audio)
+        timer.tag('audio fin')
+        default_speaker.play(audio, samplerate=output_Fs)
         # while(len(buffer)<4096*1024):
         #     buffer += audio
         # print(len(buffer))
         # buffer = []
         # sd.play(audio,output_Fs,blocking=False)
 
+def player(queue):
+    with default_speaker.player(samplerate=output_Fs) as sp:
+        while True:
+            audio = queue.get()
+            sp.play(audio)
+
 
 samples_queue = Queue()
 audio = Queue()
-stream.start_stream()
+# stream.start_stream()
 
 t_producer = Thread(target=producer,args=(samples_queue,))
 t_producer.daemon = True
@@ -115,10 +128,11 @@ t_player.daemon = True
 
 t_producer.start()
 t_consumer.start()
-# t_consumer2.start()
-# t_consumer3.start()
+t_consumer2.start()
+t_consumer3.start()
 t_player.start()
 
+# timer.print()
 while True:
     time.sleep(5)
     # try:

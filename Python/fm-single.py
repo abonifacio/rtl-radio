@@ -6,7 +6,7 @@ from scipy import signal
 import numpy as np
 
 Fs = 2.048e6
-Fo = 91.1e6
+Fo = 92.1e6
 
 if len(sys.argv)>1:
     print(sys.argv[1])

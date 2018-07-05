@@ -13,13 +13,14 @@ class TCPClient(asyncore.dispatcher):
     BUFF_SIZE = 8192*1024
     # BUFF_SIZE = 8192
 
-    def __init__(self, queue):
+    def __init__(self, queue,timer):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect(('127.0.0.1', 1234))
         self.queue = queue
         self.buffer = bytearray()
         self.time = time.time()
+        self.timer = timer
 
     def complex_array(self,data_array):
         data_array = np.frombuffer(data_array, dtype='uint8').astype(np.double)
@@ -51,14 +52,15 @@ class TCPClient(asyncore.dispatcher):
     # def handle_read(self):
     #     s = self.recv(self.BUFF_SIZE)
     #     if len(s)>15:
-    #     	self.queue.put(self.complex_array(s))
+    #         self.timer.tag('muestras')
+    #         self.queue.put(self.complex_array(s))
 
     def handle_close(self):
         self.close()
 
 
-def init(queue):
-	request = TCPClient(queue)
+def init(queue,timer):
+	request = TCPClient(queue,timer)
 	asyncore.loop()
 	
 if __name__ == '__main__':
