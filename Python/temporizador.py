@@ -1,7 +1,7 @@
 import time
 
 
-class MyTimer:
+class Temporizador:
 
 	base_time = time.time()
 	timestamps = []

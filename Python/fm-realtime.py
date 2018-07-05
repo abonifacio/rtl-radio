@@ -1,111 +1,70 @@
-import asyncio
-import sys
-from rtlsdr import RtlSdr
-from fmtools import demodular
-import sounddevice as sd
+import argparse,time
+from multiprocessing import  Queue
+from threading import  Thread
+from fmtools import Demodulador
 import numpy as np
 import pyaudio
+import tcpclient
+from temporizador import Temporizador
 
 
-Fs = 2.048e6
-Fo = 103.7e6
+parser = argparse.ArgumentParser(description='Intento de FM en tiempo real.')
+parser.add_argument('-s', action='store', default=0,type=int,dest='seconds',help='Correr por s segundos con toma de tiempos')
 
-if len(sys.argv)>1:
-	print(sys.argv[1])
-	Fo = float(sys.argv[1]+'e6')
-
-
-def get_muestras(n_samples):
-	sdr = RtlSdr()
-	sdr.sample_rate = Fs
-	sdr.center_freq = Fo
-	sdr.freq_correction = 60
-	sdr.gain = 'auto'
-	return sdr.read_samples(n_samples)
-
-sdr = RtlSdr()
-sdr.sample_rate = Fs  # Hz
-sdr.center_freq = Fo     # Hz
-sdr.freq_correction = 60   # PPM
-sdr.gain = 'auto'
-# sdr.rs = 1024e3
-
-sampes_queue = asyncio.Queue()
-audio_queue = asyncio.Queue()
-
-def dump(obj):
-  for attr in dir(obj):
-    print("obj.%s = %r" % (attr, getattr(obj, attr)))
-
-
-# dump(sdr)
-
-async def streaming():
-	count = 0
-	buff = []
-	async for samples in sdr.stream():
-		buff += samples
-		if(count==100):
-			await sampes_queue.put(buff)
-			count = 0
-		else:
-			count +=1
-
-
-    # to stop streaming:
-	await sdr.stop()
-
-    # done
-	sdr.close()
-
-
-async def demodulador(Fs):
-	while True:
-		samples = await sampes_queue.get()
-		await audio_queue.put(demodular(samples,Fs))    	
-
-async def sonido(Fs):
-	p = pyaudio.PyAudio()
-	stream = p.open(format=pyaudio.paFloat32,channels=1,rate=int(Fs),output=True)
-	while True:
-		data = await audio_queue.get()
-		stream.write(data)
+args = parser.parse_args()
 
 
 
-loop = asyncio.get_event_loop()
-loop.create_task(streaming())
-loop.create_task(demodulador(Fs))
-loop.create_task(sonido(48e3))
-loop.run_forever()
+fm = Demodulador()
+output_Fs = fm.outputFs() 
+timer = Temporizador(args.seconds!=0)
+
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paInt16,channels=1,rate=output_Fs,output=True)
 
 
-# samples = get_muestras(1024e4)
-# sFs, senial = demodular(samples,Fs)
-# print(sFs)
-# print(len(senial))
-# sd.play(senial, sFs,blocking=True)
+def producer(queue):
+    tcpclient.init(queue)
 
-# async def streaming():
-# 	sdr = RtlSdr()
-# 	sdr.sample_rate = Fs  # Hz
-# 	sdr.center_freq = Fo     # Hz
-# 	sdr.freq_correction = 60   # PPM
-# 	sdr.gain = 'auto'
+def consumer(in_queue,out_queue):
+    while True:
+        samples = in_queue.get()
+        timer.tag('inicio consumer')
+        audio = fm.demodular(samples,toInt16=True)
+        out_queue.put(audio)
+        timer.tag('fin consumer')
 
-# 	async for samples in sdr.stream():
-# 		try:
-# 			print(len(samples))
-# 			# sFs, senial = demodular(samples,Fs)
-# 			# sd.play(senial, sFs)
-# 		except KeyboardInterrupt as e:
-# 			break
+def player(queue):
+    while True:
+        audio = queue.get()
+        timer.tag('recibido audio')
+        stream.write(audio)
+        timer.tag('muestras copiadas al buffer de audio')
 
-#     # to stop streaming:
-# 	await sdr.stop()
+samples_queue = Queue()
+audio = Queue()
+stream.start_stream()
 
-#     # done
-# 	sdr.close()
+t_producer = Thread(target=producer,args=(samples_queue,))
+t_producer.daemon = True
+t_consumer = Thread(target=consumer,args=(samples_queue,audio,))
+t_consumer.daemon = True
+t_consumer2 = Thread(target=consumer,args=(samples_queue,audio,))
+t_consumer2.daemon = True
+t_consumer3 = Thread(target=consumer,args=(samples_queue,audio,))
+t_consumer3.daemon = True
+t_player = Thread(target=player,args=(audio,))
+t_player.daemon = True
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(streaming())
+t_producer.start()
+t_consumer.start()
+t_consumer2.start()
+t_consumer3.start()
+t_player.start()
+
+if args.seconds:
+    time.sleep(args.seconds)
+    timer.print()
+else:
+    while True:
+        time.sleep(5)
