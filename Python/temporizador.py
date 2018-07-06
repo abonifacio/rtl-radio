@@ -6,12 +6,8 @@ class Temporizador:
 	base_time = time.time()
 	timestamps = []
 
-	def __init__(self,enabled = True):
-		self.enabled = enabled
-
 	def tag(self,tag):
-		if self.enabled:
-			self.timestamps.append({'tag':tag,'timestamp':(time.time()-self.base_time)})
+		self.timestamps.append({'tag':tag,'timestamp':(time.time()-self.base_time)})
 
 	def to_string(self):
 		st = ''
