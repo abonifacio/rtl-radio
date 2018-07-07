@@ -1,6 +1,6 @@
 # Informe de SDR
 
-El proyecto tiene dos carpetas, Matlab y Python. Dentro de Python se encuentra lo último desarrollado, los script de Matlab fueron pruebas iniciales para ver si era correcta la solución del problema antes de indagar sobre procesamiento con Python. Lo terminé realizando en Python porque me pareció mas interesante que Matlab, más que nada porque está más cerca de ser una aplicación real y no un script.
+El proyecto tiene dos carpetas, Matlab y Python. Dentro de Python se encuentra lo último desarrollado, los scripts de Matlab fueron pruebas iniciales para ver si era correcta la solución del problema antes de indagar sobre procesamiento con Python. Lo terminé realizando en Python porque me pareció mas interesante que Matlab, más que nada porque está más cerca de ser una aplicación real y no un script.
 
 El demodulado en sí no fué lo que demoró la entrega sino el hecho de que quería entregar la solución en tiempo real, pero fallé de todas la formas que se me ocurrieron. De todas formas entrego un script de demodulación finita y otro que tiene el mejor intento de lo que sería una demodulación en tiempo real
 
@@ -8,7 +8,7 @@ El demodulado en sí no fué lo que demoró la entrega sino el hecho de que quer
 ## Instalación
 Utilicé la version de Python **3.6.5**. Todas las librerías están listadas en el archivo `requirements.txt` y son instalables mediante `pip`.
 
-	Nota: Fui probando varias librerías a lo largo de del desarrollo, por lo que es posible que me haya olvidado de anotar alguna, de todas formas siempre fueron instaladas mediante pip 
+	Nota: Fui probando varias librerías a lo largo del desarrollo, por lo que es posible que me haya olvidado de anotar alguna, de todas formas siempre fueron instaladas mediante pip 
 
 ## Simple
 
@@ -244,7 +244,7 @@ class Demodulador:
 	def __init__(self,timer=None,plotter=None):
 		self.F_bw1 = 180e3 #Ancho de banda FM comercial
 		self.F_bw2 = 15e3 #Ancho de banda de la señal de audio
-		self.N1 = int(FS//(self.F_bw1*2)) # Se redondea para abajo para  
+		self.N1 = int(FS//(self.F_bw1*2)) # Se redondea para abajo para
 		self.N2 = int((FS/self.N1)//(self.F_bw2*2)) # no diezmar de más tal que Fs<2*BW
 		self.primer_filtro = lpf_remez(self.F_bw1,FS)
 		self.segundo_filtro = lpf_remez(self.F_bw2,(FS/self.N1))
