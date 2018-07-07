@@ -3,7 +3,7 @@ Fo = 91.1e6;
 Bw1 = 200e3;
 Bw2 = 15e3;
 
-data = loadFile('Muestras-91.1');
+data = loadFile('Muestras-91.1.raw');
 %DEP(data,Fs,'Senial muestrada');
 %FFT(data,Fs);
 

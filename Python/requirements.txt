@@ -1,6 +1,6 @@
 numpy 
 scipy
-rtlsdr
+pyrtlsdr
 fmtools
 sounddevice
 pyaudio

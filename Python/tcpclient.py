@@ -22,6 +22,7 @@ class TCPClient(asyncore.dispatcher):
 
     def handle_read(self):
         s = self.recv(self.BUFF_SIZE)
+        #al conectarse con el dongle devuelve un string que no tengo que procesar
         if len(s)>15:
             self.queue.put(s)
 
