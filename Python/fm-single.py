@@ -17,7 +17,7 @@ args = parser.parse_args()
 sdr = RtlSdr()
 sdr.sample_rate = Fs  # Hz
 sdr.center_freq = (args.Fo*1e6)     # Hz
-sdr.freq_correction = 60   # PPM
+sdr.freq_correction = 60   # PPM -> Este parámetro depende del Dongle particular, por lo que si va a utilizado sería conveniente que se pase como parámetro también...
 sdr.gain = 'auto'
 
 timer = Temporizador()

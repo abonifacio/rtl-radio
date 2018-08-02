@@ -30,11 +30,11 @@ class Demodulador:
 	def decimate(self,senial,N):
 		return signal.decimate(senial, N)
 
-	def discriminar(self,senial):
+	def discriminar(self,senial): # quizás sea bueno pasar la "frecuencia de muestreo" como parámetro, por si se hace algún diezmado antes.
 		D = 5
 		kf = D*self.F_bw1
 		y = np.unwrap(np.angle(senial))/(2*np.pi*kf)
-		y = np.diff(y)*FS
+		y = np.diff(y)*FS # creo que antes de discriminar diezmás, por lo que en vez de FS, tendrías que usar FS/N1
 		y = y - np.mean(y)
 		return y
 

@@ -2,7 +2,7 @@
 
 El proyecto tiene dos carpetas, Matlab y Python. Dentro de Python se encuentra lo último desarrollado, los scripts de Matlab fueron pruebas iniciales para ver si era correcta la solución del problema antes de indagar sobre procesamiento con Python. Lo terminé realizando en Python porque me pareció mas interesante que Matlab, más que nada porque está más cerca de ser una aplicación real y no un script.
 
-El demodulado en sí no fué lo que demoró la entrega sino el hecho de que quería entregar la solución en tiempo real, pero fallé de todas la formas que se me ocurrieron. De todas formas entrego un script de demodulación finita y otro que tiene el mejor intento de lo que sería una demodulación en tiempo real
+El demodulado en sí no fué lo que demoró la entrega sino el hecho de que quería entregar la solución en tiempo real, pero fallé de todas las formas que se me ocurrieron. De todas maneras entrego un script de demodulación finita y otro que tiene el mejor intento de lo que sería una demodulación en tiempo real
 
 
 ## Instalación
@@ -61,6 +61,10 @@ Found Fitipower FC0012 tuner
 
 El programa empieza a tomar el tiempo cuando se inicia y los tiempos que se imprimen son los segundos que pasaron desde ese inicio.
 Como se puede ver, la toma de muestras dura aproximadamente **8** segundos y el audio se reproduce en **5**. Si bien esta puede no ser la forma adecueada de leer muestras en tiempo real, la diferencia de tiempos es bastante y no la pude reducir.
+
+<span style="color:red">
+Es extraño que la toma dure 3 segundos más que la reproducción...Tendríamos que sentarnos a ver el código funcionando y ver si lo podemos mejorar....No vi ningún error importante, aunque como la programación no es mi fuerte, si lo vemos entre los dos quizás encontremos algo.
+</span></p>
 
 ### plotter.py
 
@@ -306,3 +310,7 @@ class Demodulador:
 		return senial
 
 ```
+
+<span style="color:red">
+Realicé algunos comentarios del código en los archivos .py directamente para que los revises. Adjunto el archivo de devolución al repositorio...
+</span></p>
